@@ -51,7 +51,7 @@ if __name__ == '__main__':
     config['LOCALE'] = args.locale
 
     if not args.mock:
-        start_locator_thread(args)
+        # start_locator_thread(args)
     else:
         insert_mock_data()
 

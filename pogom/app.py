@@ -7,6 +7,7 @@ import logging
 from flask import Flask, jsonify, render_template, request
 from flask.json import JSONEncoder
 from datetime import datetime
+from search import search
 
 from . import config
 from .models import Pokemon, Gym, Pokestop, GoogleSearchBox
@@ -19,7 +20,8 @@ class Pogom(Flask):
         self.json_encoder = CustomJSONEncoder
         self.route("/", methods=['GET'])(self.fullmap)
         self.route("/raw_data", methods=['GET'])(self.raw_data)
-        self.route("/next_loc", methods=['POST'])(self.next_loc)
+        self.route("/raw_data", methods=['GET'])(self.raw_data)
+        self.route("/get_pokemon", methods=['GET'])(search)
 
     def fullmap(self):
         return render_template('map.html',
