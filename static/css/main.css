@@ -1846,7 +1846,7 @@ body {
     padding-top: 44px; }
   #header {
     height: 44px;
-    line-height: 56px; }
+    line-height: 44px; }
     #header > h1 {
       left: 1em; }
       #header > h1 a {
@@ -2002,9 +2002,7 @@ html, body {
   margin-top: 3.5em; }
 
 .wrapper {
-  position: relative;
-  height: 100%;
-  overflow: hidden; }
+  position: relative; }
 
 #header, #map, #footer {
   position: absolute; }
@@ -2016,7 +2014,7 @@ html, body {
 #map {
   top: 3.5em;
   bottom: 0px;
-  height: calc(100vh - 3.5em);
+  height: 100vh;
   width: 100vw; }
 
 /* Footer */
@@ -2047,43 +2045,3 @@ html, body {
         border-left: 0;
         margin-left: 0;
         padding-left: 0; } }
-
-/* Map Mods */
-.controls {
-  margin-top: 10px;
-  border: 1px solid transparent;
-  border-radius: 2px 0 0 2px;
-  box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  height: 32px;
-  outline: none;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3); }
-
-#pac-input {
-  background-color: #fff;
-  font-family: Roboto;
-  font-size: 15px;
-  font-weight: 300;
-  margin-left: 12px;
-  padding: 0 11px 0 13px;
-  text-overflow: ellipsis;
-  width: 60%; }
-
-#pac-input:focus {
-  border-color: #4d90fe; }
-
-.pac-container {
-  font-family: Roboto; }
-
-#type-selector {
-  color: #fff;
-  background-color: #4d90fe;
-  padding: 5px 11px 0px 11px; }
-
-#type-selector label {
-  font-family: Roboto;
-  font-size: 13px;
-  font-weight: 300; }
-
-#target {
-  width: 345px; }

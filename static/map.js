@@ -11,10 +11,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
 var $selectExclude = $("#exclude-pokemon");
 var $selectNotify = $("#notify-pokemon");
-var currentMarker;
-var locationMarker;
-var lastStamp = 0;
-var requestInterval = 10000;
 
 $.getJSON("static/locales/pokemon." + document.documentElement.lang + ".json").done(function(data) {
     var pokeList = []
@@ -72,8 +68,8 @@ function initMap() {
         },
         zoom: 16,
         streetViewControl: false,
-        mapTypeControl: true,
-        mapTypeControlOptions: {
+		mapTypeControl: true,
+		mapTypeControlOptions: {
           style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
           position: google.maps.ControlPosition.RIGHT_TOP,
           mapTypeIds: [
@@ -85,14 +81,14 @@ function initMap() {
         },
     });
 
-    var style_dark = new google.maps.StyledMapType(darkStyle, {name: "Dark"});
-    map.mapTypes.set('dark_style', style_dark);
+	var style_dark = new google.maps.StyledMapType(darkStyle, {name: "Dark"});
+	map.mapTypes.set('dark_style', style_dark);
 
-    var style_light2 = new google.maps.StyledMapType(light2Style, {name: "Light2"});
-    map.mapTypes.set('style_light2', style_light2);
+	var style_light2 = new google.maps.StyledMapType(light2Style, {name: "Light2"});
+	map.mapTypes.set('style_light2', style_light2);
 
-    var style_pgo = new google.maps.StyledMapType(pGoStyle, {name: "PokemonGo"});
-    map.mapTypes.set('style_pgo', style_pgo);
+	var style_pgo = new google.maps.StyledMapType(pGoStyle, {name: "PokemonGo"});
+	map.mapTypes.set('style_pgo', style_pgo);
 
     map.addListener('maptypeid_changed', function(s) {
         localStorage['map_style'] = this.mapTypeId;
@@ -104,216 +100,16 @@ function initMap() {
 
     map.setMapTypeId(localStorage['map_style']);
 
-    if(is_gsearchDisplay){
-        InitPlaces();
-    }
-
-    setCurrentMarker(center_lat, center_lng);
-
-    addMyLocationButton();
+    marker = new google.maps.Marker({
+        position: {
+            lat: center_lat,
+            lng: center_lng
+        },
+        map: map,
+        animation: google.maps.Animation.DROP
+    });
 
     initSidebar();
-};
-
-myLocationButton = function (map, marker) {
-    var locationContainer = document.createElement('div');
-
-    var locationButton = document.createElement('button');
-    locationButton.style.backgroundColor = '#fff';
-    locationButton.style.border = 'none';
-    locationButton.style.outline = 'none';
-    locationButton.style.width = '28px';
-    locationButton.style.height = '28px';
-    locationButton.style.borderRadius = '2px';
-    locationButton.style.boxShadow = '0 1px 4px rgba(0,0,0,0.3)';
-    locationButton.style.cursor = 'pointer';
-    locationButton.style.marginRight = '10px';
-    locationButton.style.padding = '0px';
-    locationButton.title = 'Your Location';
-    locationContainer.appendChild(locationButton);
-
-    var locationIcon = document.createElement('div');
-    locationIcon.style.margin = '5px';
-    locationIcon.style.width = '18px';
-    locationIcon.style.height = '18px';
-    locationIcon.style.backgroundImage = 'url(static/mylocation-sprite-1x.png)';
-    locationIcon.style.backgroundSize = '180px 18px';
-    locationIcon.style.backgroundPosition = '0px 0px';
-    locationIcon.style.backgroundRepeat = 'no-repeat';
-    locationIcon.id = 'current-location';
-    locationButton.appendChild(locationIcon);
-
-    locationButton.addEventListener('click', function() {
-        var currentLocation = document.getElementById('current-location');
-        var imgX = '0';
-        var animationInterval = setInterval(function(){
-            if(imgX == '-18') imgX = '0';
-            else imgX = '-18';
-            currentLocation.style.backgroundPosition = imgX+'px 0';
-        }, 500);
-        if(navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function(position) {
-                var latlng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-                
-                //clear the current marker
-                clearCurrentMarker();
-                setNewLocation(position.coords.latitude,  position.coords.longitude);
-                
-                locationMarker.setVisible(true);
-                locationMarker.setOptions({'opacity': 1});
-                locationMarker.setPosition(latlng);
-                map.setCenter(latlng);
-                clearInterval(animationInterval);
-                currentLocation.style.backgroundPosition = '-144px 0px';
-            });
-        }
-        else{
-            clearInterval(animationInterval);
-            currentLocation.style.backgroundPosition = '0px 0px';
-        }
-    });
-
-    locationContainer.index = 1;
-    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(locationContainer);
-}
-
-addMyLocationButton = function () {
-    locationMarker = new google.maps.Marker({
-        map: map,
-        animation: google.maps.Animation.DROP,
-        position: {lat: center_lat, lng: center_lng},
-        icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            fillOpacity: 1,
-            fillColor: '#1c8af6',
-            scale: 6,
-            strokeColor: '#1c8af6',
-            strokeWeight: 8,
-            strokeOpacity: 0.3
-        }
-    });
-    locationMarker.setVisible(false);
-
-    myLocationButton(map, locationMarker);
-
-    google.maps.event.addListener(map, 'dragend', function() {
-        var currentLocation = document.getElementById('current-location');
-        currentLocation.style.backgroundPosition = '0px 0px';
-        locationMarker.setOptions({'opacity': 0.5});
-    });
-}
-
-/**
- * set the current marker location
- * lat = latitude, lng = longitude, title = name of the marker
- */
-var setCurrentMarker = function(lat, lng, title){
-
-    clearCurrentMarker();
-
-    var newLocation={};
-    newLocation.lat=lat;
-    newLocation.lng=lng;
-
-    currentMarker = new google.maps.Marker({
-        position: newLocation,
-        map: map,
-        title: title,
-        animation: google.maps.Animation.DROP
-    });
-};
-
-/**
- * calls the server api to change the location
- */
-var setNewLocation = function(lat, lng){
-    var newLocation={};
-    newLocation.lat = Number(lat);
-    newLocation.lon = Number(lng);
-
-    $.post("next_loc", newLocation)
-    .fail(function(data){
-        alert('next_loc failed for: ' + newLocation);
-    });
-}
-
-//PLACES ADDITION
-
-InitPlaces = function(){
-    var sInput = document.getElementById('pac-input');
-    sInput.style.display="inherit";
-
-    var searchBox = new google.maps.places.SearchBox(sInput);
-    map.controls[google.maps.ControlPosition.TOP_LEFT].push(sInput);
-
-    // Bias the SearchBox results towards current map's viewport.
-    map.addListener('bounds_changed', function() {
-        searchBox.setBounds(map.getBounds());
-    });
-
-    // Listen for the event fired when the user selects a prediction and retrieve
-    // more details for that place.
-    searchBox.addListener('places_changed', function() {
-        var places = searchBox.getPlaces();
-
-        if (places.length == 0) {
-            return;
-        }
-
-        // For each place, get the icon, name and location.
-        var bounds = new google.maps.LatLngBounds();
-        places.forEach(function(place) {
-
-            //for now we assume one place, technically this is a for loop
-            //so its possible to set current marker multiple times
-            setCurrentMarker(place.geometry.location.lat(), place.geometry.location.lng(), place.name);
-            
-            //lets make a call to the api to change the lat lon, reset the search
-            setNewLocation(place.geometry.location.lat(), place.geometry.location.lng());
-           
-            if (place.geometry.viewport) {
-                // Only geocodes have viewport.
-                bounds.union(place.geometry.viewport);
-            } else {
-                bounds.extend(place.geometry.location);
-            }
-        });
-
-        //reset the map focus
-        map.fitBounds(bounds);
-        map.setZoom(15);
-    });
-};
-
-/**
- * clears the current marker
- */
-var clearCurrentMarker=function(){
-    if(currentMarker!=null){
-        //clear the marker
-        currentMarker.setMap(null);
-        currentMarker = null;
-    }
-}
-
-/**
- * set the current marker location
- * lat = latitude, lng = longitude, title = name of the marker
- */
-var setCurrentMarker = function(lat, lng, title){
-
-    clearCurrentMarker();
-
-    var newLocation={};
-    newLocation.lat=lat;
-    newLocation.lng=lng;
-
-    currentMarker = new google.maps.Marker({
-        position: newLocation,
-        map: map,
-        title: title,
-        animation: google.maps.Animation.DROP
-    });
 };
 
 function initSidebar() {
@@ -390,7 +186,7 @@ function setupPokemonMarker(item) {
     });
     
     if (notifiedPokemon.indexOf(item.pokemon_id) > -1) {
-        sendNotification('A ' + item.pokemon_name + ' Appeared', 'Click to load map', 'static/icons/' + item.pokemon_id + '.png')
+        sendNotification('A wild ' + item.pokemon_name + ' appeared!', 'Click to load map', 'static/icons/' + item.pokemon_id + '.png')
     }
 
     addListeners(marker);

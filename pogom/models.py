@@ -11,7 +11,7 @@ from .utils import get_pokemon_name
 from .transform import transform_from_wgs_to_gcj
 from .customLog import printPokemon
 
-db = SqliteDatabase('pogom.db?v=1.5')
+db = SqliteDatabase('pogom.db')
 log = logging.getLogger(__name__)
 
 
@@ -27,9 +27,6 @@ class BaseModel(Model):
 class Pokemon(BaseModel):
     # We are base64 encoding the ids delivered by the api
     # because they are too big for sqlite to handle
-    IGNORE = None
-    ONLY = None
-    CHINA = False
     encounter_id = CharField(primary_key=True)
     spawnpoint_id = CharField()
     pokemon_id = IntegerField()
@@ -53,10 +50,6 @@ class Pokemon(BaseModel):
 
 
 class Pokestop(BaseModel):
-    IGNORE = True
-    LURED_ONLY = False
-    CHINA = False
-
     pokestop_id = CharField(primary_key=True)
     enabled = BooleanField()
     latitude = FloatField()
@@ -65,32 +58,8 @@ class Pokestop(BaseModel):
     lure_expiration = DateTimeField(null=True)
     active_pokemon_id = IntegerField(null=True)
 
-    @classmethod
-    def get(cls):
-        pokestops = []
-
-        if not cls.IGNORE:
-            if cls.LURED_ONLY:
-                pokestops = (Pokestop
-                             .select()
-                             .where(~(Pokestop.lure_expiration >> None))
-                             .dicts())
-            else:
-                pokestops = (Pokestop
-                             .select()
-                             .dicts())
-
-            if cls.CHINA:
-                for pokestop in pokestops:
-                    pokestop['latitude'], pokestop['longitude'] = transform_from_wgs_to_gcj(pokestop['latitude'], pokestop['longitude'])
-
-        return pokestops
-
 
 class Gym(BaseModel):
-    IGNORE = True
-    CHINA = False
-
     UNCONTESTED = 0
     TEAM_MYSTIC = 1
     TEAM_VALOR = 2
@@ -104,17 +73,6 @@ class Gym(BaseModel):
     latitude = FloatField()
     longitude = FloatField()
     last_modified = DateTimeField()
-
-    @classmethod
-    def get(cls):
-        gyms = []
-
-
-        if cls.CHINA:
-            for gym in gyms:
-                gym['latitude'], gym['longitude'] = transform_from_wgs_to_gcj(gym['latitude'], gym['longitude'])
-
-        return gyms
 
 
 def parse_map(map_dict):
@@ -199,8 +157,3 @@ def create_tables():
     db.connect()
     db.create_tables([Pokemon, Pokestop, Gym], safe=True)
     db.close()
-
-
-#placeholder class, instead of using the config?
-class GoogleSearchBox:
-    DISPLAY = False
