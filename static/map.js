@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
+
     if (!Notification) {
         console.log('could not load notifications');
         return;
@@ -110,98 +111,9 @@ function initMap() {
 
     setCurrentMarker(center_lat, center_lng);
 
-    addMyLocationButton();
-
     initSidebar();
 };
 
-myLocationButton = function (map, marker) {
-    var locationContainer = document.createElement('div');
-
-    var locationButton = document.createElement('button');
-    locationButton.style.backgroundColor = '#fff';
-    locationButton.style.border = 'none';
-    locationButton.style.outline = 'none';
-    locationButton.style.width = '28px';
-    locationButton.style.height = '28px';
-    locationButton.style.borderRadius = '2px';
-    locationButton.style.boxShadow = '0 1px 4px rgba(0,0,0,0.3)';
-    locationButton.style.cursor = 'pointer';
-    locationButton.style.marginRight = '10px';
-    locationButton.style.padding = '0px';
-    locationButton.title = 'Your Location';
-    locationContainer.appendChild(locationButton);
-
-    var locationIcon = document.createElement('div');
-    locationIcon.style.margin = '5px';
-    locationIcon.style.width = '18px';
-    locationIcon.style.height = '18px';
-    locationIcon.style.backgroundImage = 'url(static/mylocation-sprite-1x.png)';
-    locationIcon.style.backgroundSize = '180px 18px';
-    locationIcon.style.backgroundPosition = '0px 0px';
-    locationIcon.style.backgroundRepeat = 'no-repeat';
-    locationIcon.id = 'current-location';
-    locationButton.appendChild(locationIcon);
-
-    locationButton.addEventListener('click', function() {
-        var currentLocation = document.getElementById('current-location');
-        var imgX = '0';
-        var animationInterval = setInterval(function(){
-            if(imgX == '-18') imgX = '0';
-            else imgX = '-18';
-            currentLocation.style.backgroundPosition = imgX+'px 0';
-        }, 500);
-        if(navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function(position) {
-                var latlng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-                
-                //clear the current marker
-                clearCurrentMarker();
-                setNewLocation(position.coords.latitude,  position.coords.longitude);
-                
-                locationMarker.setVisible(true);
-                locationMarker.setOptions({'opacity': 1});
-                locationMarker.setPosition(latlng);
-                map.setCenter(latlng);
-                clearInterval(animationInterval);
-                currentLocation.style.backgroundPosition = '-144px 0px';
-            });
-        }
-        else{
-            clearInterval(animationInterval);
-            currentLocation.style.backgroundPosition = '0px 0px';
-        }
-    });
-
-    locationContainer.index = 1;
-    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(locationContainer);
-}
-
-addMyLocationButton = function () {
-    locationMarker = new google.maps.Marker({
-        map: map,
-        animation: google.maps.Animation.DROP,
-        position: {lat: center_lat, lng: center_lng},
-        icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            fillOpacity: 1,
-            fillColor: '#1c8af6',
-            scale: 6,
-            strokeColor: '#1c8af6',
-            strokeWeight: 8,
-            strokeOpacity: 0.3
-        }
-    });
-    locationMarker.setVisible(false);
-
-    myLocationButton(map, locationMarker);
-
-    google.maps.event.addListener(map, 'dragend', function() {
-        var currentLocation = document.getElementById('current-location');
-        currentLocation.style.backgroundPosition = '0px 0px';
-        locationMarker.setOptions({'opacity': 0.5});
-    });
-}
 
 /**
  * set the current marker location
@@ -264,6 +176,9 @@ InitPlaces = function(){
         var bounds = new google.maps.LatLngBounds();
         places.forEach(function(place) {
 
+            $('#geoloc-switch').checked = false;
+            localStorage["geoLocate"] = false;
+
             //for now we assume one place, technically this is a for loop
             //so its possible to set current marker multiple times
             setCurrentMarker(place.geometry.location.lat(), place.geometry.location.lng(), place.name);
@@ -317,9 +232,8 @@ var setCurrentMarker = function(lat, lng, title){
 };
 
 function initSidebar() {
-    $('#gyms-switch').prop('checked', localStorage.showGyms === 'true');
     $('#pokemon-switch').prop('checked', localStorage.showPokemon === 'true');
-    $('#pokestops-switch').prop('checked', localStorage.showPokestops === 'true');
+    $('#geoloc-switch').prop('checked', localStorage.geoLocate === 'true');
 }
 
 
@@ -498,84 +412,110 @@ function updateMap() {
           }
         });
 
-        $.each(result.pokestops, function(i, item) {
-            if (!localStorage.showPokestops) {
-                return false;
-            } else if (!(item.pokestop_id in map_pokestops)) { // add marker to map and item to dict
-                // add marker to map and item to dict
-                if (item.marker) item.marker.setMap(null);
-                item.marker = setupPokestopMarker(item);
-                map_pokestops[item.pokestop_id] = item;
-            }
+        // $.each(result.pokestops, function(i, item) {
+        //     if (!localStorage.showPokestops) {
+        //         return false;
+        //     } else if (!(item.pokestop_id in map_pokestops)) { // add marker to map and item to dict
+        //         // add marker to map and item to dict
+        //         if (item.marker) item.marker.setMap(null);
+        //         item.marker = setupPokestopMarker(item);
+        //         map_pokestops[item.pokestop_id] = item;
+        //     }
 
-        });
+        // });
 
-        $.each(result.gyms, function(i, item){
-            if (!localStorage.showGyms) {
-                return false; // in case the checkbox was unchecked in the meantime.
-            }
+        // $.each(result.gyms, function(i, item){
+        //     if (!localStorage.showGyms) {
+        //         return false; // in case the checkbox was unchecked in the meantime.
+        //     }
 
-            if (item.gym_id in map_gyms) {
-                // if team has changed, create new marker (new icon)
-                if (map_gyms[item.gym_id].team_id != item.team_id) {
-                    map_gyms[item.gym_id].marker.setMap(null);
-                    map_gyms[item.gym_id].marker = setupGymMarker(item);
-                } else { // if it hasn't changed generate new label only (in case prestige has changed)
-                    map_gyms[item.gym_id].marker.infoWindow = new google.maps.InfoWindow({
-                        content: gymLabel(gym_types[item.team_id], item.team_id, item.gym_points)
-                    });
-                }
-            }
-            else { // add marker to map and item to dict
-                if (item.marker) item.marker.setMap(null);
-                item.marker = setupGymMarker(item);
-                map_gyms[item.gym_id] = item;
-            }
+        //     if (item.gym_id in map_gyms) {
+        //         // if team has changed, create new marker (new icon)
+        //         if (map_gyms[item.gym_id].team_id != item.team_id) {
+        //             map_gyms[item.gym_id].marker.setMap(null);
+        //             map_gyms[item.gym_id].marker = setupGymMarker(item);
+        //         } else { // if it hasn't changed generate new label only (in case prestige has changed)
+        //             map_gyms[item.gym_id].marker.infoWindow = new google.maps.InfoWindow({
+        //                 content: gymLabel(gym_types[item.team_id], item.team_id, item.gym_points)
+        //             });
+        //         }
+        //     }
+        //     else { // add marker to map and item to dict
+        //         if (item.marker) item.marker.setMap(null);
+        //         item.marker = setupGymMarker(item);
+        //         map_gyms[item.gym_id] = item;
+        //     }
 
-        });
+        // });
 
         clearStaleMarkers();
     });
 };
 
+$('#geoloc-switch').change(function() {
+     if(!navigator.geolocation){
+        this.checked = false;
+     } else {
+         localStorage["geoLocate"] = this.checked;
+     }
+ });
+
+window.setInterval(function() {
+   if(navigator.geolocation && localStorage.geoLocate === 'true') {
+     navigator.geolocation.getCurrentPosition(function (position){
+       var baseURL = location.protocol + "//" + location.hostname + (location.port ? ":"+location.port: "");
+       lat = position.coords.latitude;
+       lon = position.coords.longitude;
+       $.post(baseURL + "/next_loc?lat=" + lat + "&lon=" + lon).done(function(){
+         var center = new google.maps.LatLng(lat, lon);
+         //only move the map and marker if you've moved 10 meters (30 ft)... hopefully that's a good balance.
+           //and base it on the marker, not the center of the map! duh.
+         if(google.maps.geometry.spherical.computeDistanceBetween(center, currentMarker.getPosition()) > 10)
+           map.panTo(center);
+         currentMarker.setPosition(center);
+       });
+     });
+  }
+ }, 1000);
+
 window.setInterval(updateMap, 5000);
 updateMap();
 
-document.getElementById('gyms-switch').onclick = function() {
-    localStorage["showGyms"] = this.checked;
-    if (this.checked) {
-        updateMap();
-    } else {
-        $.each(map_gyms, function(key, value) {
-            map_gyms[key].marker.setMap(null);
-        });
-        map_gyms = {}
-    }
-};
+// document.getElementById('gyms-switch').onclick = function() {
+//     localStorage["showGyms"] = this.checked;
+//     if (this.checked) {
+//         updateMap();
+//     } else {
+//         $.each(map_gyms, function(key, value) {
+//             map_gyms[key].marker.setMap(null);
+//         });
+//         map_gyms = {}
+//     }
+// };
 
-$('#pokemon-switch').change(function() {
-    localStorage["showPokemon"] = this.checked;
-    if (this.checked) {
-        updateMap();
-    } else {
-        $.each(map_pokemons, function(key, value) {
-            map_pokemons[key].marker.setMap(null);
-        });
-        map_pokemons = {}
-    }
-});
+// $('#pokemon-switch').change(function() {
+//     localStorage["showPokemon"] = this.checked;
+//     if (this.checked) {
+//         updateMap();
+//     } else {
+//         $.each(map_pokemons, function(key, value) {
+//             map_pokemons[key].marker.setMap(null);
+//         });
+//         map_pokemons = {}
+//     }
+// });
 
-$('#pokestops-switch').change(function() {
-    localStorage["showPokestops"] = this.checked;
-    if (this.checked) {
-        updateMap();
-    } else {
-        $.each(map_pokestops, function(key, value) {
-            map_pokestops[key].marker.setMap(null);
-        });
-        map_pokestops = {}
-    }
-});
+// $('#pokestops-switch').change(function() {
+//     localStorage["showPokestops"] = this.checked;
+//     if (this.checked) {
+//         updateMap();
+//     } else {
+//         $.each(map_pokestops, function(key, value) {
+//             map_pokestops[key].marker.setMap(null);
+//         });
+//         map_pokestops = {}
+//     }
+// });
 
 var updateLabelDiffTime = function() {
     $('.label-countdown').each(function(index, element) {
