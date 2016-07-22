@@ -394,8 +394,8 @@ function updateMap() {
         type: 'GET',
         data: {
             'pokemon': localStorage.showPokemon,
-            'pokestops': localStorage.showPokestops,
-            'gyms': localStorage.showGyms
+            'pokestops': false,
+            'gyms': false
         },
         dataType: "json"
     }).done(function(result) {
