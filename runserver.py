@@ -6,14 +6,12 @@ import logging
 import time
 
 from threading import Thread
-from flask_cors import CORS, cross_origin
 
 from pogom import config
 from pogom.app import Pogom
 from pogom.utils import get_args, insert_mock_data, load_credentials
 from pogom.search import search_loop
-from pogom.models import create_tables, Pokemon, Pokestop, Gym
-
+from pogom.models import create_tables, Pokemon, Pokestop, Gym, GoogleSearchBox
 from pogom.pgoapi.utilities import get_pos_by_name
 
 log = logging.getLogger(__name__)
@@ -34,7 +32,6 @@ if __name__ == '__main__':
     logging.getLogger("requests").setLevel(logging.WARNING)
     logging.getLogger("pogom.pgoapi.pgoapi").setLevel(logging.WARNING)
     logging.getLogger("pogom.pgoapi.rpc_api").setLevel(logging.INFO)
-    logging.getLogger('werkzeug').setLevel(logging.ERROR)
 
     args = get_args()
 
@@ -58,11 +55,25 @@ if __name__ == '__main__':
     else:
         insert_mock_data()
 
+    if args.display_pokestops or args.display_lured:
+        Pokestop.IGNORE = False
+
+    if args.display_lured:
+        Pokestop.LURED_ONLY = True
+
+    if args.display_gyms:
+        Gym.IGNORE = False
+
+    #Coordination transformation is needed inside China to display right map.
+    if args.china:
+        Pokemon.CHINA = True
+        Pokestop.CHINA = True
+        Gym.CHINA = True
+
+    if args.display_gsearch:
+        GoogleSearchBox.DISPLAY = True
+
     app = Pogom(__name__)
-
-    if args.cors:
-        CORS(app);
-
     config['ROOT_PATH'] = app.root_path
     if args.gmaps_key is not None:
         config['GMAPS_KEY'] = args.gmaps_key
