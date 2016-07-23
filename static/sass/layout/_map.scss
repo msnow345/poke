@@ -19,7 +19,12 @@
         margin-left: 12px;
         padding: 0 11px 0 13px;
         text-overflow: ellipsis;
-        width: 60%;
+        width: calc(100% - 24px);
+        margin-top:15px;
+
+        @media (min-width:500px) {
+          width:60%;
+        }
       }
 
       #pac-input:focus {
@@ -34,6 +39,7 @@
         color: #fff;
         background-color: #4d90fe;
         padding: 5px 11px 0px 11px;
+        display:none;
       }
 
       #type-selector label {
@@ -43,4 +49,8 @@
       }
       #target {
         width: 345px;
+      }
+
+      .gm-style-mtc{
+        display:none!important;
       }

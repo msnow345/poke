@@ -1,10 +1,10 @@
 /* Type */
 
-@import url(https://fonts.googleapis.com/css?family=Muli:400,300);
+// @import url(https://fonts.googleapis.com/css?family=Muli:400,300);
 
 body, input, select, textarea {
 	color: _palette(fg);
-	font-family: _font(family);
+	font-family: sans-serif;
 	font-size: 13pt;
 	font-weight: _font(weight);
 	line-height: 1.65;
