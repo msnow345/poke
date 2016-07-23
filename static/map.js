@@ -86,7 +86,7 @@ function initMap() {
         },
     });
 
-    var style_dark = new google.maps.StyledMapType(darkStyle, {name: "Dark"});
+     var style_dark = new google.maps.StyledMapType(darkStyle, {name: "Dark"});
     map.mapTypes.set('dark_style', style_dark);
 
     var style_light2 = new google.maps.StyledMapType(light2Style, {name: "Light2"});
@@ -108,10 +108,27 @@ function initMap() {
     if(is_gsearchDisplay){
         InitPlaces();
     }
-
+    
     setCurrentMarker(center_lat, center_lng);
-
+    updateMapTimer();
+    initMapClick(map);
+    setUpGeoLocation();
     initSidebar();
+
+   
+};
+
+function initMapClick(map) {
+
+    google.maps.event.addListener(map, 'click', function(event) {
+        var lat = event.latLng.lat();
+        var lng = event.latLng.lng();
+        localStorage["geoLocate"] = false;
+        $('#geoloc-switch').checked = false;
+        setCurrentMarker(lat,lng);
+         setNewLocation(lat, lng);
+    });
+
 };
 
 
@@ -460,26 +477,31 @@ $('#geoloc-switch').change(function() {
      }
  });
 
-window.setInterval(function() {
-   if(navigator.geolocation && localStorage.geoLocate === 'true') {
-     navigator.geolocation.getCurrentPosition(function (position){
-       var baseURL = location.protocol + "//" + location.hostname + (location.port ? ":"+location.port: "");
-       lat = position.coords.latitude;
-       lon = position.coords.longitude;
-       $.post(baseURL + "/next_loc?lat=" + lat + "&lon=" + lon).done(function(){
-         var center = new google.maps.LatLng(lat, lon);
-         //only move the map and marker if you've moved 10 meters (30 ft)... hopefully that's a good balance.
-           //and base it on the marker, not the center of the map! duh.
-         if(google.maps.geometry.spherical.computeDistanceBetween(center, currentMarker.getPosition()) > 10)
-           map.panTo(center);
-         currentMarker.setPosition(center);
-       });
-     });
-  }
- }, 1000);
+function setUpGeoLocation() {
+    window.setInterval(function() {
+       if(navigator.geolocation && localStorage.geoLocate === 'true') {
+         navigator.geolocation.getCurrentPosition(function (position){
+           var baseURL = location.protocol + "//" + location.hostname + (location.port ? ":"+location.port: "");
+           lat = position.coords.latitude;
+           lon = position.coords.longitude;
+           $.post(baseURL + "/next_loc?lat=" + lat + "&lon=" + lon).done(function(){
+             var center = new google.maps.LatLng(lat, lon);
+             //only move the map and marker if you've moved 10 meters (30 ft)... hopefully that's a good balance.
+               //and base it on the marker, not the center of the map! duh.
+             if(google.maps.geometry.spherical.computeDistanceBetween(center, currentMarker.getPosition()) > 10)
+               map.panTo(center);
+             currentMarker.setPosition(center);
+           });
+         });
+      }
+     }, 1000);
+}
 
-window.setInterval(updateMap, 5000);
-updateMap();
+function updateMapTimer() {
+    window.setInterval(updateMap, 5000);
+    updateMap();
+}
+
 
 // document.getElementById('gyms-switch').onclick = function() {
 //     localStorage["showGyms"] = this.checked;
