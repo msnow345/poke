@@ -260,6 +260,8 @@ function searchControl(action){
 }
 function searchControlStatus(callback){
   $.getJSON(searchControlURI).then(function(data){
+
+    console.log(data);
     if (data.status === 'idle') {
         console.log('no longer searching');
         isSearching = false;
@@ -267,9 +269,7 @@ function searchControlStatus(callback){
     } else {
         $('body').addClass('searching');
         isSearching = true;
-        setTimeout(function(){
-            searchControlStatus();
-        },1000);
+        
     }
 
     if (callback) {
