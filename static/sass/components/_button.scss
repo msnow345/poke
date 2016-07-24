@@ -97,3 +97,37 @@
 			padding: 0;
 		}
 	}
+#start-search{
+	background-color:#ee1515;
+	position: absolute;
+	bottom: 20px;
+	padding: 25px;
+	line-height: 0px;
+	left: 50%;
+	width:80%;
+	padding:22px;
+	text-transform:uppercase;
+	transform: translate(-50%, 0);
+
+	img{
+		position: absolute;
+		  top: 5px;
+		  width: 35px;
+		  left: 50%;
+		  margin-left: -75px;
+		  display:none;
+	}
+
+	.ing{
+		display:none;
+	}
+}
+
+.searching #start-search{
+	img{
+		display:block;
+	}
+	.ing{
+		display:inline;
+	}
+}

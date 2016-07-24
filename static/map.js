@@ -17,6 +17,7 @@ var locationMarker;
 var lastStamp = 0;
 var requestInterval = 10000;
 var is_gsearchDisplay = true;
+var isSearching = false;
 
 $.getJSON("static/locales/pokemon." + document.documentElement.lang + ".json").done(function(data) {
     var pokeList = []
@@ -161,7 +162,11 @@ var setNewLocation = function(lat, lng){
     newLocation.lat = Number(lat);
     newLocation.lon = Number(lng);
 
-    $.post("next_loc", newLocation)
+    $.post("next_loc", newLocation).done(function(){
+        searchControl('stop').done(function(){
+            // searchControl('start');
+        });
+    })
     .fail(function(data){
         alert('next_loc failed for: ' + newLocation);
     });
@@ -249,9 +254,63 @@ var setCurrentMarker = function(lat, lng, title){
     });
 };
 
+searchControlURI = 'search_control'
+function searchControl(action){
+  return $.post(searchControlURI + '?action='+encodeURIComponent(action));
+}
+function searchControlStatus(callback){
+  $.getJSON(searchControlURI).then(function(data){
+    if (data.status === 'idle') {
+        console.log('Currently Idle');
+        isSearching = false;
+        $('body').removeClass('searching');
+    } else {
+        console.log('Currently Searching');
+        $('body').addClass('searching');
+        isSearching = true;
+        setTimeout(function(){
+            searchControlStatus();
+        },1000);
+    }
+
+    if (callback) {
+        callback(data.status);
+    }
+  })
+}
+function updateSearchStatus(){
+  searchControlStatus(function(){
+
+    
+
+  });
+}
+
 function initSidebar() {
     $('#pokemon-switch').prop('checked', localStorage.showPokemon === 'true');
     $('#geoloc-switch').prop('checked', localStorage.geoLocate === 'true');
+
+    searchControlStatus();
+
+    $('button#stop-search').click(function(){
+       searchControl('stop');
+     });
+ 
+    $('button#start-search').click(function(){
+
+        searchControlStatus(function(){
+            if(!isSearching) {
+                isSearching = true;
+                $('body').addClass('searching');
+                searchControl('start').done(function(){
+                    searchControlStatus();
+                });
+            } else {
+                return;
+            }
+        });
+      
+    });
 }
 
 

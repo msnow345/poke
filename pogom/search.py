@@ -28,6 +28,8 @@ lng_gap_meters = 86.6
 meters_per_degree = 111111
 lat_gap_degrees = float(lat_gap_meters) / meters_per_degree
 
+## eww global state, refactor this whole file at some point
+stopping = False
 search_queue = Queue(config['SEARCH_QUEUE_DEPTH'])
 
 def calculate_lng_degrees(lat):
@@ -112,10 +114,13 @@ def create_search_threads(num) :
 def search_thread(args):
     queue = args
     while True:
-        i, total_steps, step_location, step, lock = queue.get()
+        i, total_steps, step_location, step, lock, control = queue.get()
         log.info("Search queue depth is: " + str(queue.qsize()))
         response_dict = {}
         failed_consecutive = 0
+        if queue.qsize() == 0:
+            log.info('Search state idle');
+            control.state = 'idle'
         while not response_dict:
             response_dict = send_map_request(api, step_location)
             if response_dict:
@@ -144,7 +149,7 @@ def process_search_threads(search_threads, curr_steps, total_steps):
         log.info('Completed {:5.2f}% of scan.'.format(float(curr_steps) / total_steps*100))
     return curr_steps
 
-def search(args, i):
+def search(args, i, control):
     num_steps = args.step_limit
     total_steps = (3 * (num_steps**2)) - (3 * num_steps) + 1
     position = (config['ORIGINAL_LATITUDE'], config['ORIGINAL_LONGITUDE'], 0)
@@ -166,6 +171,8 @@ def search(args, i):
     max_threads = args.num_threads
 
     for step, step_location in enumerate(generate_location_steps(position, num_steps), 1):
+        if stopping:
+            return
         if 'NEXT_LOCATION' in config:
             log.info('New location found. Starting new scan.')
             config['ORIGINAL_LATITUDE'] = config['NEXT_LOCATION']['lat']
@@ -174,16 +181,19 @@ def search(args, i):
             search(args, i)
             return
 
-        search_args = ( i, total_steps, step_location, step, lock)
+        search_args = ( i, total_steps, step_location, step, lock, control)
         search_queue.put(search_args)
 
 def search_loop(args):
+    global stopping
     i = 0
     try:
-        while True:
+        while not stopping:
             log.info("Map iteration: {}".format(i))
-            search(args, i)
+            search(args, i, args.control)
             log.info("Scanning complete.")
+            stopping = True
+            
             if args.scan_delay > 1:
                 log.info('Waiting {:d} seconds before beginning new scan.'.format(args.scan_delay))
                 time.sleep(args.scan_delay)
@@ -194,3 +204,14 @@ def search_loop(args):
         log.info('Crashed, waiting {:d} seconds before restarting search.'.format(args.scan_delay))
         time.sleep(args.scan_delay)
         search_loop(args)
+
+def search_loop_stop():
+    global stopping
+    """
+        stops the searching method after current operation has completed
+    """
+    stopping = True
+
+def search_loop_start():
+    global stopping
+    stopping = False
