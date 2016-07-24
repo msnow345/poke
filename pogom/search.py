@@ -184,7 +184,7 @@ def search(args, i):
             search(args, i)
             return
 
-        search_args = ( i, total_steps, step_location, step, lock, control)
+        search_args = ( i, total_steps, step_location, step, lock, args.control)
         search_queue.put(search_args)
 
 def search_loop(args):
