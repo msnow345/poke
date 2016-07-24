@@ -16,6 +16,7 @@ var currentMarker;
 var locationMarker;
 var lastStamp = 0;
 var requestInterval = 10000;
+var is_gsearchDisplay = true;
 
 $.getJSON("static/locales/pokemon." + document.documentElement.lang + ".json").done(function(data) {
     var pokeList = []
