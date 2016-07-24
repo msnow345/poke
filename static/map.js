@@ -261,11 +261,9 @@ function searchControl(action){
 function searchControlStatus(callback){
   $.getJSON(searchControlURI).then(function(data){
     if (data.status === 'idle') {
-        console.log('Currently Idle');
         isSearching = false;
         $('body').removeClass('searching');
     } else {
-        console.log('Currently Searching');
         $('body').addClass('searching');
         isSearching = true;
         setTimeout(function(){
