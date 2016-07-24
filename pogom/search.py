@@ -118,10 +118,12 @@ def search_thread(args):
         log.info("Search queue depth is: " + str(queue.qsize()))
         response_dict = {}
         failed_consecutive = 0
+        if queue.qsize() > 0:
+            log.info('Search state searching');
+            control.state = 'searching'
         if queue.qsize() == 0:
             log.info('Search state idle');
             control.state = 'idle'
-            letIdle = False
         while not response_dict:
             response_dict = send_map_request(api, step_location)
             if response_dict:
