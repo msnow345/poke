@@ -152,7 +152,7 @@ def process_search_threads(search_threads, curr_steps, total_steps):
         log.info('Completed {:5.2f}% of scan.'.format(float(curr_steps) / total_steps*100))
     return curr_steps
 
-def search(args, i, control):
+def search(args, i):
     num_steps = args.step_limit
     total_steps = (3 * (num_steps**2)) - (3 * num_steps) + 1
     position = (config['ORIGINAL_LATITUDE'], config['ORIGINAL_LONGITUDE'], 0)
@@ -193,7 +193,7 @@ def search_loop(args):
     try:
         while not stopping:
             log.info("Map iteration: {}".format(i))
-            search(args, i, args.control)
+            search(args, i)
             log.info("Scanning complete.")
             stopping = True
             
