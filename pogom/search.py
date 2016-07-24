@@ -114,13 +114,17 @@ def create_search_threads(num) :
 def search_thread(args):
     queue = args
     while True:
+        letIdle = False
         i, total_steps, step_location, step, lock, control = queue.get()
         log.info("Search queue depth is: " + str(queue.qsize()))
         response_dict = {}
         failed_consecutive = 0
-        if queue.qsize() == 0:
+        if queue.qsize() > 0:
+            letIdle = True
+        if queue.qsize() == 0 and letIdle:
             log.info('Search state idle');
             control.state = 'idle'
+            letIdle = False
         while not response_dict:
             response_dict = send_map_request(api, step_location)
             if response_dict:
