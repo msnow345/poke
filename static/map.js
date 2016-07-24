@@ -266,9 +266,6 @@ function searchControlStatus(callback){
     } else {
         $('body').addClass('searching');
         isSearching = true;
-        setTimeout(function(){
-            searchControlStatus();
-        }, 2000);
     }
 
     if (callback) {
@@ -287,9 +284,9 @@ function updateSearchStatus(){
 function initSidebar() {
     $('#pokemon-switch').prop('checked', localStorage.showPokemon === 'true');
     $('#geoloc-switch').prop('checked', localStorage.geoLocate === 'true');
-
     searchControlStatus();
-
+    var searchStatusInterval = setInterval(searchControlStatus, 1000);
+    
     $('button#stop-search').click(function(){
        searchControl('stop');
      });
