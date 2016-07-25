@@ -78,6 +78,7 @@ function initMap() {
 
     if (localStorage) {
         if (localStorage.storedLat && localStorage.storedLng) {
+            locChanged = true;
             lat = Number(localStorage.storedLat);
             lng = Number(localStorage.storedLng);
         } else {
