@@ -76,7 +76,7 @@ function initMap() {
     if (localStorage) {
         if (localStorage.currentLocation) {
             var lat = localStorage.currentLocation.lat;
-            var lng = localStorage.currentLocation.lng;
+            var lng = localStorage.currentLocation.lon;
         } else {
             var lat = center_lat;
             var lng = center_lng;
@@ -143,7 +143,7 @@ function initMapClick(map) {
         localStorage["geoLocate"] = false;
         $('#geoloc-switch').checked = false;
         setCurrentMarker(lat,lng);
-         setNewLocation(lat, lng);
+        setNewLocation(lat,lng);
     });
 
 };
