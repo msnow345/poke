@@ -123,7 +123,7 @@ def search_thread(args):
             log.info('Search state searching')
             control.state = 'searching'
             initThread = True
-        if queue.qsize() == 0:
+        if queue.qsize() == 0 and initThread:
             log.info('Search state idle')
             control.state = 'idle'
             initThread = False
