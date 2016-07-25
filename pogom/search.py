@@ -138,6 +138,7 @@ def search_thread(args):
             else:
                 log.info('Map Download failed. Trying again.')
     else:
+        control = queue.get()
         if queue.qsize() == 0:
             log.info('Search state idle');
             control.state = 'idle'
