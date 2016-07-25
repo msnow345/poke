@@ -580,14 +580,14 @@ function setUpGeoLocation() {
            var baseURL = location.protocol + "//" + location.hostname + (location.port ? ":"+location.port: "");
            lat = position.coords.latitude;
            lon = position.coords.longitude;
-           $.post(baseURL + "/next_loc?lat=" + lat + "&lon=" + lon).done(function(){
-             var center = new google.maps.LatLng(lat, lon);
+           setCurrentMarker(lat, lon);
+           setNewLocation(lat, long);
+            var center = new google.maps.LatLng(lat, lon);
              //only move the map and marker if you've moved 10 meters (30 ft)... hopefully that's a good balance.
                //and base it on the marker, not the center of the map! duh.
-             if(google.maps.geometry.spherical.computeDistanceBetween(center, currentMarker.getPosition()) > 10)
-               map.panTo(center);
-             currentMarker.setPosition(center);
-           });
+            if(google.maps.geometry.spherical.computeDistanceBetween(center, currentMarker.getPosition()) > 10){
+                map.panTo(center);
+            }
          });
       }
      }, 1000);
