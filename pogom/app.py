@@ -27,12 +27,8 @@ class Pogom(Flask):
         self.route("/loc", methods=['GET'])(self.loc)
         self.route("/next_loc", methods=['POST'])(self.next_loc)
         self.route("/mobile", methods=['GET'])(self.list_pokemon)
-        self.route("/scan", methods=['GET'])(self.scan)
         self.route("/search_control", methods=['GET'])(self.search_control_status)
         self.route("/search_control", methods=['POST'])(self.search_control)
-
-    def scan():
-        
     
     def set_search_control(self, control):
         self.control = control
