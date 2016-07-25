@@ -73,20 +73,26 @@ var selectedStyle = 'light';
 
 function initMap() {
 
+    var lat;
+    var lng;
+
     if (localStorage) {
         if (localStorage.currentLocation) {
-            var lat = localStorage.currentLocation.lat;
-            var lng = localStorage.currentLocation.lon;
+            lat = localStorage.currentLocation.lat;
+            lng = localStorage.currentLocation.lon;
         } else {
-            var lat = center_lat;
-            var lng = center_lng;
+            lat = center_lat;
+            lng = center_lng;
         }
+    } else {
+        lat = center_lat;
+        lng = center_lng;
     }
 
     map = new google.maps.Map(document.getElementById('map'), {
         center: {
-            lat: center_lat,
-            lng: center_lng
+            lat: lat,
+            lng: lng
         },
         zoom: 16,
         streetViewControl: false,
@@ -177,7 +183,10 @@ var setNewLocation = function(lat, lng){
     newLocation.lat = Number(lat);
     newLocation.lon = Number(lng);
 
-    localStorage.currentLocation = newLocation;
+    localStorage.currentLocation = {
+        lat: lat,
+        lon: lng
+    };
 
     currentLat = lat;
     currentLng = lng;
