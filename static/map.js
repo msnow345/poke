@@ -77,7 +77,7 @@ function initMap() {
     var lng;
 
     if (localStorage) {
-        if (localStorage.currentLocation) {
+        if (localStorage.storedLat && localStorage.storedLng) {
             lat = Number(localStorage.storedLat);
             lng = Number(localStorage.storedLng);
         } else {
@@ -88,8 +88,6 @@ function initMap() {
         lat = center_lat;
         lng = center_lng;
     }
-
-    console.log(lat, lng, localStorage);
 
     map = new google.maps.Map(document.getElementById('map'), {
         center: {
