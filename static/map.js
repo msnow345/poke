@@ -284,8 +284,10 @@ function updateSearchStatus(){
 function initSidebar() {
     $('#pokemon-switch').prop('checked', localStorage.showPokemon === 'true');
     $('#geoloc-switch').prop('checked', localStorage.geoLocate === 'true');
+
     searchControlStatus();
-    var searchStatusInterval = setInterval(searchControlStatus, 1000);
+
+    searchStatusInterval = setInterval(searchControlStatus, 1000);
     
     $('button#stop-search').click(function(){
        searchControl('stop');
@@ -295,10 +297,14 @@ function initSidebar() {
 
         searchControlStatus(function(){
             if(!isSearching) {
+                clearInterval(searchStatusInterval);
                 isSearching = true;
                 $('body').addClass('searching');
                 searchControl('start').done(function(){
-                    searchControlStatus();
+                    setTimeout(function(){
+                        searchControlStatus();
+                        searchStatusInterval = setInterval(searchControlStatus, 1000);
+                    }, 5000);
                 });
             } else {
                 return;
