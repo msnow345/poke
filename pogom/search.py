@@ -121,9 +121,6 @@ def search_thread(args):
         if queue.qsize() > 0:
             log.info('Search state searching');
             control.state = 'searching'
-        if queue.qsize() == 0:
-            log.info('Search state idle');
-            control.state = 'idle'
         while not response_dict:
             response_dict = send_map_request(api, step_location)
             if response_dict:
@@ -140,7 +137,10 @@ def search_thread(args):
                         response_dict = {}
             else:
                 log.info('Map Download failed. Trying again.')
-
+    else:
+        if queue.qsize() == 0:
+            log.info('Search state idle');
+            control.state = 'idle'
         time.sleep(config['REQ_SLEEP'])
 
 def process_search_threads(search_threads, curr_steps, total_steps):
