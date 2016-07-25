@@ -323,7 +323,7 @@ function initSidebar() {
                             mapUpdateTimer = setInterval(updateMap, 5000);
 
                             setTimeout(function(){
-                                searchControlStatus();
+                                // searchControlStatus();
                                 searchStatusInterval = setInterval(searchControlStatus, 1000);
                             }, 10000);
                         });  
@@ -336,9 +336,9 @@ function initSidebar() {
                         mapUpdateTimer = setInterval(updateMap, 5000);
 
                         setTimeout(function(){
-                            searchControlStatus();
+                            // searchControlStatus();
                             searchStatusInterval = setInterval(searchControlStatus, 1000);
-                        }, 5000);
+                        }, 10000);
                     });
 
                 }
