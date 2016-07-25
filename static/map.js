@@ -19,6 +19,11 @@ var requestInterval = 10000;
 var is_gsearchDisplay = true;
 var isSearching = false;
 var searchStatusInterval;
+var currentLat = center_lat;
+var currentLng = center_lng;
+var locChanged = false;
+var newLocation = {};
+var mapUpdateTimer;
 
 $.getJSON("static/locales/pokemon." + document.documentElement.lang + ".json").done(function(data) {
     var pokeList = []
@@ -159,18 +164,17 @@ var setCurrentMarker = function(lat, lng, title){
  * calls the server api to change the location
  */
 var setNewLocation = function(lat, lng){
-    var newLocation={};
+    newLocation={};
     newLocation.lat = Number(lat);
     newLocation.lon = Number(lng);
 
-    $.post("next_loc", newLocation).done(function(){
-        searchControl('stop').done(function(){
-            // searchControl('start');
-        });
-    })
-    .fail(function(data){
-        alert('next_loc failed for: ' + newLocation);
-    });
+    currentLat = lat;
+    currentLng = lng;
+
+    locChanged = true;
+
+    updateMap();
+    
 }
 
 //PLACES ADDITION
@@ -264,6 +268,17 @@ function searchControlStatus(callback){
     if (data.status === 'idle') {
         isSearching = false;
         $('body').removeClass('searching');
+
+        if (mapUpdateTimer) {
+            setTimeout(function(){
+                if (!isSearching && mapUpdateTimer) {
+                    clearInterval(mapUpdateTimer);
+                    mapUpdateTimer = false;
+                    updateMap();
+                }
+            }, 5000);
+        }
+        
     } else {
         $('body').addClass('searching');
         isSearching = true;
@@ -301,12 +316,37 @@ function initSidebar() {
                 clearInterval(searchStatusInterval);
                 isSearching = true;
                 $('body').addClass('searching');
-                searchControl('start').done(function(){
-                    setTimeout(function(){
-                        searchControlStatus();
-                        searchStatusInterval = setInterval(searchControlStatus, 1000);
-                    }, 5000);
-                });
+
+                if (locChanged) {
+                    $.post("next_loc", newLocation).done(function(){
+                            searchControl('start').done(function(){
+                            console.log('setting interval');
+                            mapUpdateTimer = setInterval(updateMap, 5000);
+
+                            setTimeout(function(){
+                                console.log('setting search control status');
+                                searchControlStatus();
+                                searchStatusInterval = setInterval(searchControlStatus, 1000);
+                            }, 5000);
+                        });  
+                    })
+                    .fail(function(data){
+                        alert('next_loc failed for: ' + newLocation);
+                    });
+                } else {
+                    searchControl('start').done(function(){
+                        console.log('setting interval');
+                        mapUpdateTimer = setInterval(updateMap, 5000);
+
+                        setTimeout(function(){
+                            console.log('setting search control status');
+                            searchControlStatus();
+                            searchStatusInterval = setInterval(searchControlStatus, 1000);
+                        }, 5000);
+                    });
+
+                }
+                
             } else {
                 return;
             }
@@ -463,10 +503,14 @@ function clearStaleMarkers() {
 };
 
 function updateMap() {
+
+    console.log('updating Map');
     
     localStorage.showPokemon = localStorage.showPokemon || true;
     localStorage.showGyms = localStorage.showGyms || true;
     localStorage.showPokestops = localStorage.showPokestops || true;
+
+    var boundingBox = getBoundingBox([currentLat, currentLng], 1);
 
     $.ajax({
         url: "raw_data",
@@ -474,7 +518,11 @@ function updateMap() {
         data: {
             'pokemon': localStorage.showPokemon,
             'pokestops': false,
-            'gyms': false
+            'gyms': false,
+            'swLat': boundingBox[1],
+            'swLng': boundingBox[0],
+            'neLat': boundingBox[3],
+            'neLng': boundingBox[2]
         },
         dataType: "json"
     }).done(function(result) {
@@ -491,43 +539,6 @@ function updateMap() {
           }
         });
 
-        // $.each(result.pokestops, function(i, item) {
-        //     if (!localStorage.showPokestops) {
-        //         return false;
-        //     } else if (!(item.pokestop_id in map_pokestops)) { // add marker to map and item to dict
-        //         // add marker to map and item to dict
-        //         if (item.marker) item.marker.setMap(null);
-        //         item.marker = setupPokestopMarker(item);
-        //         map_pokestops[item.pokestop_id] = item;
-        //     }
-
-        // });
-
-        // $.each(result.gyms, function(i, item){
-        //     if (!localStorage.showGyms) {
-        //         return false; // in case the checkbox was unchecked in the meantime.
-        //     }
-
-        //     if (item.gym_id in map_gyms) {
-        //         // if team has changed, create new marker (new icon)
-        //         if (map_gyms[item.gym_id].team_id != item.team_id) {
-        //             map_gyms[item.gym_id].marker.setMap(null);
-        //             map_gyms[item.gym_id].marker = setupGymMarker(item);
-        //         } else { // if it hasn't changed generate new label only (in case prestige has changed)
-        //             map_gyms[item.gym_id].marker.infoWindow = new google.maps.InfoWindow({
-        //                 content: gymLabel(gym_types[item.team_id], item.team_id, item.gym_points)
-        //             });
-        //         }
-        //     }
-        //     else { // add marker to map and item to dict
-        //         if (item.marker) item.marker.setMap(null);
-        //         item.marker = setupGymMarker(item);
-        //         map_gyms[item.gym_id] = item;
-        //     }
-
-        // });
-
-        clearStaleMarkers();
     });
 };
 
@@ -560,7 +571,7 @@ function setUpGeoLocation() {
 }
 
 function updateMapTimer() {
-    window.setInterval(updateMap, 5000);
+    window.setInterval(clearStaleMarkers, 5000);
     updateMap();
 }
 
@@ -639,6 +650,79 @@ function readCookie(name) {
     }
     return null;
 }
+
+'use strict';
+
+/**
+ * @param {number} distance - distance (km) from the point represented by centerPoint
+ * @param {array} centerPoint - two-dimensional array containing center coords [latitude, longitude]
+ * @description
+ *   Computes the bounding coordinates of all points on the surface of a sphere
+ *   that has a great circle distance to the point represented by the centerPoint
+ *   argument that is less or equal to the distance argument.
+ *   Technique from: Jan Matuschek <http://JanMatuschek.de/LatitudeLongitudeBoundingCoordinates>
+ * @author Alex Salisbury
+*/
+
+getBoundingBox = function (centerPoint, distance) {
+  var MIN_LAT, MAX_LAT, MIN_LON, MAX_LON, R, radDist, degLat, degLon, radLat, radLon, minLat, maxLat, minLon, maxLon, deltaLon;
+  if (distance < 0) {
+    return 'Illegal arguments';
+  }
+  // helper functions (degrees<–>radians)
+  Number.prototype.degToRad = function () {
+    return this * (Math.PI / 180);
+  };
+  Number.prototype.radToDeg = function () {
+    return (180 * this) / Math.PI;
+  };
+  // coordinate limits
+  MIN_LAT = (-90).degToRad();
+  MAX_LAT = (90).degToRad();
+  MIN_LON = (-180).degToRad();
+  MAX_LON = (180).degToRad();
+  // Earth's radius (km)
+  R = 6378.1;
+  // angular distance in radians on a great circle
+  radDist = distance / R;
+  // center point coordinates (deg)
+  degLat = centerPoint[0];
+  degLon = centerPoint[1];
+  // center point coordinates (rad)
+  radLat = degLat.degToRad();
+  radLon = degLon.degToRad();
+  // minimum and maximum latitudes for given distance
+  minLat = radLat - radDist;
+  maxLat = radLat + radDist;
+  // minimum and maximum longitudes for given distance
+  minLon = void 0;
+  maxLon = void 0;
+  // define deltaLon to help determine min and max longitudes
+  deltaLon = Math.asin(Math.sin(radDist) / Math.cos(radLat));
+  if (minLat > MIN_LAT && maxLat < MAX_LAT) {
+    minLon = radLon - deltaLon;
+    maxLon = radLon + deltaLon;
+    if (minLon < MIN_LON) {
+      minLon = minLon + 2 * Math.PI;
+    }
+    if (maxLon > MAX_LON) {
+      maxLon = maxLon - 2 * Math.PI;
+    }
+  }
+  // a pole is within the given distance
+  else {
+    minLat = Math.max(minLat, MIN_LAT);
+    maxLat = Math.min(maxLat, MAX_LAT);
+    minLon = MIN_LON;
+    maxLon = MAX_LON;
+  }
+  return [
+    minLon.radToDeg(),
+    minLat.radToDeg(),
+    maxLon.radToDeg(),
+    maxLat.radToDeg()
+  ];
+};
 
 function sendNotification(title, text, icon) {
     if (Notification.permission !== "granted") {
