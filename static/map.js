@@ -78,8 +78,8 @@ function initMap() {
 
     if (localStorage) {
         if (localStorage.currentLocation) {
-            lat = Number(localStorage.currentLocation.lat);
-            lng = Number(localStorage.currentLocation.lon);
+            lat = Number(localStorage.storedLat);
+            lng = Number(localStorage.storedLng);
         } else {
             lat = center_lat;
             lng = center_lng;
@@ -185,10 +185,8 @@ var setNewLocation = function(lat, lng){
     newLocation.lat = Number(lat);
     newLocation.lon = Number(lng);
 
-    localStorage.currentLocation = {
-        lat: lat,
-        lon: lng
-    };
+    localStorage.storedLat = lat;
+    localStorage.storedLng = lng;
 
     currentLat = lat;
     currentLng = lng;
