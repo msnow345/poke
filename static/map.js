@@ -73,6 +73,15 @@ var selectedStyle = 'light';
 
 function initMap() {
 
+    if (localStorage) {
+        if (localStorage.currentLocation) {
+            var lat = localStorage.currentLocation.lat;
+            var lng = localStorage.currentLocation.lng;
+        } else {
+            var lat = center_lat;
+            var lng = center_lng;
+        }
+    }
 
     map = new google.maps.Map(document.getElementById('map'), {
         center: {
@@ -117,7 +126,7 @@ function initMap() {
         InitPlaces();
     }
     
-    setCurrentMarker(center_lat, center_lng);
+    setCurrentMarker(lat, lng);
     updateMapTimer();
     initMapClick(map);
     setUpGeoLocation();
@@ -167,6 +176,8 @@ var setNewLocation = function(lat, lng){
     newLocation={};
     newLocation.lat = Number(lat);
     newLocation.lon = Number(lng);
+
+    localStorage.currentLocation = newLocation;
 
     currentLat = lat;
     currentLng = lng;
