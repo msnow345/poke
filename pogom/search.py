@@ -137,11 +137,7 @@ def search_thread(args):
                         response_dict = {}
             else:
                 log.info('Map Download failed. Trying again.')
-    else:
-        control = queue.get()
-        if queue.qsize() == 0:
-            log.info('Search state idle');
-            control.state = 'idle'
+
         time.sleep(config['REQ_SLEEP'])
 
 def process_search_threads(search_threads, curr_steps, total_steps):
@@ -202,6 +198,9 @@ def search_loop(args):
                 log.info('Waiting {:d} seconds before beginning new scan.'.format(args.scan_delay))
                 time.sleep(args.scan_delay)
             i += 1
+        else:
+            log.info('Search State Idle');
+            args.control.state = 'idle'
 
     # This seems appropriate
     except Exception as e:
