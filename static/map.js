@@ -264,7 +264,13 @@ function searchControl(action){
   return $.post(searchControlURI + '?action='+encodeURIComponent(action));
 }
 function searchControlStatus(callback){
-  $.getJSON(searchControlURI).then(function(data){
+
+    $.ajax({
+        cache: false,
+        url: searchControlURI,
+        type: 'GET',
+        dataType: "json"
+    }).then(function(data){
     if (data.status === 'idle') {
         isSearching = false;
         $('body').removeClass('searching');
@@ -325,7 +331,7 @@ function initSidebar() {
                             setTimeout(function(){
                                 // searchControlStatus();
                                 searchStatusInterval = setInterval(searchControlStatus, 1000);
-                            }, 10000);
+                            }, 5000);
                         });  
                     })
                     .fail(function(data){
@@ -338,7 +344,7 @@ function initSidebar() {
                         setTimeout(function(){
                             // searchControlStatus();
                             searchStatusInterval = setInterval(searchControlStatus, 1000);
-                        }, 10000);
+                        }, 5000);
                     });
 
                 }
@@ -507,6 +513,7 @@ function updateMap() {
     var boundingBox = getBoundingBox([currentLat, currentLng], 0.5);
 
     $.ajax({
+        cache: false,
         url: "raw_data",
         type: 'GET',
         data: {
