@@ -78,8 +78,8 @@ function initMap() {
 
     if (localStorage) {
         if (localStorage.currentLocation) {
-            lat = localStorage.currentLocation.lat;
-            lng = localStorage.currentLocation.lon;
+            lat = Number(localStorage.currentLocation.lat);
+            lng = Number(localStorage.currentLocation.lon);
         } else {
             lat = center_lat;
             lng = center_lng;
@@ -89,10 +89,12 @@ function initMap() {
         lng = center_lng;
     }
 
+    console.log(lat, lng, localStorage);
+
     map = new google.maps.Map(document.getElementById('map'), {
         center: {
-            lat: lat,
-            lng: lng
+            lat: Number(lat),
+            lng: Number(lng)
         },
         zoom: 16,
         streetViewControl: false,
