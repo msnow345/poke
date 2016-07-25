@@ -325,7 +325,7 @@ function initSidebar() {
                             setTimeout(function(){
                                 searchControlStatus();
                                 searchStatusInterval = setInterval(searchControlStatus, 1000);
-                            }, 5000);
+                            }, 10000);
                         });  
                     })
                     .fail(function(data){
