@@ -81,6 +81,9 @@ function initMap() {
             locChanged = true;
             lat = Number(localStorage.storedLat);
             lng = Number(localStorage.storedLng);
+            newLocation = {};
+            newLocation.lat = lat;
+            newLocation.lon = lng;
         } else {
             lat = center_lat;
             lng = center_lng;
