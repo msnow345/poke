@@ -532,7 +532,7 @@ function updateMap() {
     localStorage.showGyms = localStorage.showGyms || true;
     localStorage.showPokestops = localStorage.showPokestops || true;
 
-    var boundingBox = getBoundingBox([currentLat, currentLng], 0.5);
+    var boundingBox = getBoundingBox([currentLat, currentLng], 1);
 
     $.ajax({
         cache: false,
