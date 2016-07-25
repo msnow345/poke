@@ -320,11 +320,9 @@ function initSidebar() {
                 if (locChanged) {
                     $.post("next_loc", newLocation).done(function(){
                             searchControl('start').done(function(){
-                            console.log('setting interval');
                             mapUpdateTimer = setInterval(updateMap, 5000);
 
                             setTimeout(function(){
-                                console.log('setting search control status');
                                 searchControlStatus();
                                 searchStatusInterval = setInterval(searchControlStatus, 1000);
                             }, 5000);
@@ -335,11 +333,9 @@ function initSidebar() {
                     });
                 } else {
                     searchControl('start').done(function(){
-                        console.log('setting interval');
                         mapUpdateTimer = setInterval(updateMap, 5000);
 
                         setTimeout(function(){
-                            console.log('setting search control status');
                             searchControlStatus();
                             searchStatusInterval = setInterval(searchControlStatus, 1000);
                         }, 5000);
@@ -503,8 +499,6 @@ function clearStaleMarkers() {
 };
 
 function updateMap() {
-
-    console.log('updating Map');
     
     localStorage.showPokemon = localStorage.showPokemon || true;
     localStorage.showGyms = localStorage.showGyms || true;
