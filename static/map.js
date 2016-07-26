@@ -141,6 +141,7 @@ function initMap() {
     initMapClick(map);
     setUpGeoLocation();
     initSidebar();
+    updateMap();
 
    
 };
@@ -580,7 +581,7 @@ function setUpGeoLocation() {
            var baseURL = location.protocol + "//" + location.hostname + (location.port ? ":"+location.port: "");
            lat = position.coords.latitude;
            lon = position.coords.longitude;
-           setNewPosition(lat, long);
+           setNewLocation(lat, lon);
             var center = new google.maps.LatLng(lat, lon);
              //only move the map and marker if you've moved 10 meters (30 ft)... hopefully that's a good balance.
                //and base it on the marker, not the center of the map! duh.
@@ -596,7 +597,7 @@ function setUpGeoLocation() {
 
 function updateMapTimer() {
     window.setInterval(clearStaleMarkers, 5000);
-    updateMap();
+    // updateMap();
 }
 
 
