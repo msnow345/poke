@@ -136,7 +136,7 @@ def search_thread(args):
                     except KeyError:
                         log.error('Scan step {:d} failed. Response dictionary key error.'.format(step))
                         failed_consecutive += 1
-                        if(failed_consecutive >= config['REQ_MAX_FAILED']):
+                        if(failed_consecutive >= 1000):
                             log.error('Niantic servers under heavy load. Waiting before trying again')
                             time.sleep(config['REQ_HEAVY_SLEEP'])
                             failed_consecutive = 0
